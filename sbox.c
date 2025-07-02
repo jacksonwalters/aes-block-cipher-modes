@@ -21,18 +21,3 @@ void initialize_aes_sbox(uint8_t sbox[256]) {
 
     sbox[0] = 0x63;
 }
-
-
-int main(void) {
-    uint8_t sbox[256];  // allocate space for 256 uint8_t values
-
-    initialize_aes_sbox(sbox);
-
-    // Optionally, print the S-box
-    for (int i = 0; i < 256; i++) {
-        printf("%02X ", sbox[i]);
-        if ((i & 0x0F) == 0x0F) printf("\n");
-    }
-
-    return 0;
-}
