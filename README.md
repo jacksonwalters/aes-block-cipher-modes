@@ -1,6 +1,6 @@
 **Implementation**
 
-This repository implements basic implementations of AES128 and AES256 in C. 
+This repository implements basic implementations of AES128 and AES256 in C, Python. 
 
 The core algorithm proceeds by performing S-box, shift, mix, and add_round methods. 
 
