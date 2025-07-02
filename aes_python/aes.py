@@ -125,16 +125,27 @@ def aes_encrypt_block(plaintext_bytes, key_bytes):
     return b''.join(word.to_bytes(4, 'big') for word in state)
 
 if __name__ == "__main__":
-    # Example AES-128 key (16 bytes)
-    key_128 = bytes.fromhex('000102030405060708090a0b0c0d0e0f')
-
-    # Example plaintext block (16 bytes)
+    # Example 16-byte plaintext block (same for both)
     block = bytes.fromhex('00112233445566778899aabbccddeeff')
 
-    # Encrypt the block
-    cipher = aes_encrypt_block(block, key_128)
+    # AES-128 key (16 bytes)
+    key_128 = bytes.fromhex('000102030405060708090a0b0c0d0e0f')
+    cipher_128 = aes_encrypt_block(block, key_128)
 
-    # Print results
+    print("=== AES-128 ===")
     print(f"Plaintext:  {block.hex()}")
     print(f"Key (128):  {key_128.hex()}")
-    print(f"Ciphertext: {cipher.hex()}")
+    print(f"Ciphertext: {cipher_128.hex()}")
+    print()
+
+    # AES-256 key (32 bytes)
+    key_256 = bytes.fromhex(
+        '000102030405060708090a0b0c0d0e0f'
+        '101112131415161718191a1b1c1d1e1f'
+    )
+    cipher_256 = aes_encrypt_block(block, key_256)
+
+    print("=== AES-256 ===")
+    print(f"Plaintext:  {block.hex()}")
+    print(f"Key (256):  {key_256.hex()}")
+    print(f"Ciphertext: {cipher_256.hex()}")
