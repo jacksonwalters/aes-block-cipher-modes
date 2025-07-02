@@ -1,0 +1,9 @@
+#ifndef AES_DEFS_H
+#define AES_DEFS_H
+
+#define AES256_BLOCK_SIZE 16
+#define AES256_KEY_SIZE 32
+#define AES256_NUM_ROUNDS 14
+#define AES256_EXPANDED_KEY_SIZE 240
+
+#endif // AES_DEFS_H
