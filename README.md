@@ -1,6 +1,6 @@
 **Implementation**
 
-This repository implements basic implementations of AES128 and AES256 in C. 
+This repository implements basic implementations of AES128 and AES256 in C, Python. 
 
 The core algorithm proceeds by performing S-box, shift, mix, and add_round methods. 
 
@@ -9,9 +9,7 @@ The core algorithm proceeds by performing S-box, shift, mix, and add_round metho
 - mix_columns(state);
 - add_round_key(state, round_keys + round * AES256_BLOCK_SIZE);
 
-These are permutation and substituions methods performed on a block which is length 16 consisting of `uint8` bytes.
-
-These can be viewed as polynomials in `GF(2^8)`.
+These are permutation and substituions methods performed on a block which is length 16 consisting of `uint8` bytes. These can be viewed as polynomials in `GF(2^8)`.
 
 **Timing**
 
