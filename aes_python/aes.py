@@ -1,3 +1,4 @@
+# AES S-box
 SBOX = [
     0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5,
     0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
@@ -33,6 +34,43 @@ SBOX = [
     0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16
 ]
 
+# AES inverse S-box
+INV_SBOX = [
+    0x52, 0x09, 0x6a, 0xd5, 0x30, 0x36, 0xa5, 0x38,
+    0xbf, 0x40, 0xa3, 0x9e, 0x81, 0xf3, 0xd7, 0xfb,
+    0x7c, 0xe3, 0x39, 0x82, 0x9b, 0x2f, 0xff, 0x87,
+    0x34, 0x8e, 0x43, 0x44, 0xc4, 0xde, 0xe9, 0xcb,
+    0x54, 0x7b, 0x94, 0x32, 0xa6, 0xc2, 0x23, 0x3d,
+    0xee, 0x4c, 0x95, 0x0b, 0x42, 0xfa, 0xc3, 0x4e,
+    0x08, 0x2e, 0xa1, 0x66, 0x28, 0xd9, 0x24, 0xb2,
+    0x76, 0x5b, 0xa2, 0x49, 0x6d, 0x8b, 0xd1, 0x25,
+    0x72, 0xf8, 0xf6, 0x64, 0x86, 0x68, 0x98, 0x16,
+    0xd4, 0xa4, 0x5c, 0xcc, 0x5d, 0x65, 0xb6, 0x92,
+    0x6c, 0x70, 0x48, 0x50, 0xfd, 0xed, 0xb9, 0xda,
+    0x5e, 0x15, 0x46, 0x57, 0xa7, 0x8d, 0x9d, 0x84,
+    0x90, 0xd8, 0xab, 0x00, 0x8c, 0xbc, 0xd3, 0x0a,
+    0xf7, 0xe4, 0x58, 0x05, 0xb8, 0xb3, 0x45, 0x06,
+    0xd0, 0x2c, 0x1e, 0x8f, 0xca, 0x3f, 0x0f, 0x02,
+    0xc1, 0xaf, 0xbd, 0x03, 0x01, 0x13, 0x8a, 0x6b,
+    0x3a, 0x91, 0x11, 0x41, 0x4f, 0x67, 0xdc, 0xea,
+    0x97, 0xf2, 0xcf, 0xce, 0xf0, 0xb4, 0xe6, 0x73,
+    0x96, 0xac, 0x74, 0x22, 0xe7, 0xad, 0x35, 0x85,
+    0xe2, 0xf9, 0x37, 0xe8, 0x1c, 0x75, 0xdf, 0x6e,
+    0x47, 0xf1, 0x1a, 0x71, 0x1d, 0x29, 0xc5, 0x89,
+    0x6f, 0xb7, 0x62, 0x0e, 0xaa, 0x18, 0xbe, 0x1b,
+    0xfc, 0x56, 0x3e, 0x4b, 0xc6, 0xd2, 0x79, 0x20,
+    0x9a, 0xdb, 0xc0, 0xfe, 0x78, 0xcd, 0x5a, 0xf4,
+    0x1f, 0xdd, 0xa8, 0x33, 0x88, 0x07, 0xc7, 0x31,
+    0xb1, 0x12, 0x10, 0x59, 0x27, 0x80, 0xec, 0x5f,
+    0x60, 0x51, 0x7f, 0xa9, 0x19, 0xb5, 0x4a, 0x0d,
+    0x2d, 0xe5, 0x7a, 0x9f, 0x93, 0xc9, 0x9c, 0xef,
+    0xa0, 0xe0, 0x3b, 0x4d, 0xae, 0x2a, 0xf5, 0xb0,
+    0xc8, 0xeb, 0xbb, 0x3c, 0x83, 0x53, 0x99, 0x61,
+    0x17, 0x2b, 0x04, 0x7e, 0xba, 0x77, 0xd6, 0x26,
+    0xe1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0c, 0x7d,
+]
+
+# Round constants for key expansion
 RCON = [
     0x01000000, 0x02000000, 0x04000000, 0x08000000,
     0x10000000, 0x20000000, 0x40000000, 0x80000000,
@@ -69,9 +107,7 @@ def key_expansion(key_bytes):
     return w, Nr
 
 def add_round_key(state, round_key):
-    for i in range(4):
-        state[i] ^= round_key[i]
-    return state
+    return [s ^ k for s, k in zip(state, round_key)]
 
 def sub_bytes(state):
     return [
@@ -82,70 +118,156 @@ def sub_bytes(state):
         for word in state
     ]
 
+def inv_sub_bytes(state):
+    return [
+        (INV_SBOX[(word >> 24) & 0xFF] << 24) |
+        (INV_SBOX[(word >> 16) & 0xFF] << 16) |
+        (INV_SBOX[(word >> 8) & 0xFF] << 8) |
+        INV_SBOX[word & 0xFF]
+        for word in state
+    ]
+
 def shift_rows(state):
-    b = [word.to_bytes(4, 'big') for word in state]
-    m = [[b[r][c] for c in range(4)] for r in range(4)]
-    m[1] = m[1][1:] + m[1][:1]
-    m[2] = m[2][2:] + m[2][:2]
-    m[3] = m[3][3:] + m[3][:3]
-    cols = [[m[r][c] for r in range(4)] for c in range(4)]
-    return [int.from_bytes(col, 'big') for col in cols]
+    matrix = [[(state[col] >> (8 * (3 - row))) & 0xFF for col in range(4)] for row in range(4)]
+    for r in range(1, 4):
+        matrix[r] = matrix[r][r:] + matrix[r][:r]
+    new_state = []
+    for c in range(4):
+        word = 0
+        for r in range(4):
+            word |= matrix[r][c] << (8 * (3 - r))
+        new_state.append(word)
+    return new_state
+
+def inv_shift_rows(state):
+    matrix = [[(state[col] >> (8 * (3 - row))) & 0xFF for col in range(4)] for row in range(4)]
+    for r in range(1, 4):
+        matrix[r] = matrix[r][-r:] + matrix[r][:-r]
+    new_state = []
+    for c in range(4):
+        word = 0
+        for r in range(4):
+            word |= matrix[r][c] << (8 * (3 - r))
+        new_state.append(word)
+    return new_state
 
 def xtime(a):
-    return ((a << 1) ^ 0x1B) & 0xFF if a & 0x80 else (a << 1)
+    return ((a << 1) ^ 0x1B) & 0xFF if (a & 0x80) else (a << 1) & 0xFF
+
+def mix_single_column(col):
+    t = col[0] ^ col[1] ^ col[2] ^ col[3]
+    u = col[0]
+    col[0] ^= t ^ xtime(col[0] ^ col[1])
+    col[1] ^= t ^ xtime(col[1] ^ col[2])
+    col[2] ^= t ^ xtime(col[2] ^ col[3])
+    col[3] ^= t ^ xtime(col[3] ^ u)
+    return col
 
 def mix_columns(state):
-    result = []
+    new_state = []
     for word in state:
-        b = word.to_bytes(4, 'big')
-        r = [
-            xtime(b[0]) ^ xtime(b[1]) ^ b[1] ^ b[2] ^ b[3],
-            b[0] ^ xtime(b[1]) ^ xtime(b[2]) ^ b[2] ^ b[3],
-            b[0] ^ b[1] ^ xtime(b[2]) ^ xtime(b[3]) ^ b[3],
-            xtime(b[0]) ^ b[0] ^ b[1] ^ b[2] ^ xtime(b[3])
-        ]
-        result.append(int.from_bytes(bytes(r), 'big'))
-    return result
+        col = [(word >> (8 * (3 - i))) & 0xFF for i in range(4)]
+        col = mix_single_column(col)
+        new_word = 0
+        for i in range(4):
+            new_word |= col[i] << (8 * (3 - i))
+        new_state.append(new_word)
+    return new_state
+
+def gf_mul(a, b):
+    p = 0
+    for _ in range(8):
+        if b & 1:
+            p ^= a
+        hi_bit_set = a & 0x80
+        a = (a << 1) & 0xFF
+        if hi_bit_set:
+            a ^= 0x1B
+        b >>= 1
+    return p
+
+def inv_mix_single_column(col):
+    u = gf_mul(col[0], 0x0e) ^ gf_mul(col[1], 0x0b) ^ gf_mul(col[2], 0x0d) ^ gf_mul(col[3], 0x09)
+    v = gf_mul(col[0], 0x09) ^ gf_mul(col[1], 0x0e) ^ gf_mul(col[2], 0x0b) ^ gf_mul(col[3], 0x0d)
+    w = gf_mul(col[0], 0x0d) ^ gf_mul(col[1], 0x09) ^ gf_mul(col[2], 0x0e) ^ gf_mul(col[3], 0x0b)
+    x = gf_mul(col[0], 0x0b) ^ gf_mul(col[1], 0x0d) ^ gf_mul(col[2], 0x09) ^ gf_mul(col[3], 0x0e)
+    return [u, v, w, x]
+
+def inv_mix_columns(state):
+    new_state = []
+    for word in state:
+        col = [(word >> (8 * (3 - i))) & 0xFF for i in range(4)]
+        col = inv_mix_single_column(col)
+        new_word = 0
+        for i in range(4):
+            new_word |= col[i] << (8 * (3 - i))
+        new_state.append(new_word)
+    return new_state
 
 def aes_encrypt_block(plaintext_bytes, key_bytes):
-    state = [
-        int.from_bytes(plaintext_bytes[4*i:4*i+4], 'big')
-        for i in range(4)
-    ]
+    state = [int.from_bytes(plaintext_bytes[4*i:4*i+4], 'big') for i in range(4)]
     w, Nr = key_expansion(key_bytes)
+
     state = add_round_key(state, w[0:4])
+
     for round in range(1, Nr):
         state = sub_bytes(state)
         state = shift_rows(state)
         state = mix_columns(state)
         state = add_round_key(state, w[round*4:(round+1)*4])
+
     state = sub_bytes(state)
     state = shift_rows(state)
     state = add_round_key(state, w[Nr*4:(Nr+1)*4])
+
     return b''.join(word.to_bytes(4, 'big') for word in state)
 
-if __name__ == "__main__":
-    # Example 16-byte plaintext block (same for both)
+def aes_decrypt_block(ciphertext_bytes, key_bytes):
+    state = [int.from_bytes(ciphertext_bytes[4*i:4*i+4], 'big') for i in range(4)]
+    w, Nr = key_expansion(key_bytes)
+
+    state = add_round_key(state, w[Nr*4:(Nr+1)*4])
+
+    for round in range(Nr-1, 0, -1):
+        state = inv_shift_rows(state)
+        state = inv_sub_bytes(state)
+        state = add_round_key(state, w[round*4:(round+1)*4])
+        state = inv_mix_columns(state)
+
+    state = inv_shift_rows(state)
+    state = inv_sub_bytes(state)
+    state = add_round_key(state, w[0:4])
+
+    return b''.join(word.to_bytes(4, 'big') for word in state)
+
+def main():
+    # 16-byte plaintext block
     block = bytes.fromhex('00112233445566778899aabbccddeeff')
 
-    # AES-128 key (16 bytes)
+    # AES-128
     key_128 = bytes.fromhex('000102030405060708090a0b0c0d0e0f')
     cipher_128 = aes_encrypt_block(block, key_128)
+    decrypted_128 = aes_decrypt_block(cipher_128, key_128)
 
     print("=== AES-128 ===")
     print(f"Plaintext:  {block.hex()}")
-    print(f"Key (128):  {key_128.hex()}")
+    print(f"Key:        {key_128.hex()}")
     print(f"Ciphertext: {cipher_128.hex()}")
-    print()
+    print(f"Decrypted:  {decrypted_128.hex()}\n")
 
-    # AES-256 key (32 bytes)
+    # AES-256
     key_256 = bytes.fromhex(
         '000102030405060708090a0b0c0d0e0f'
         '101112131415161718191a1b1c1d1e1f'
     )
     cipher_256 = aes_encrypt_block(block, key_256)
+    decrypted_256 = aes_decrypt_block(cipher_256, key_256)
 
     print("=== AES-256 ===")
     print(f"Plaintext:  {block.hex()}")
-    print(f"Key (256):  {key_256.hex()}")
+    print(f"Key:        {key_256.hex()}")
     print(f"Ciphertext: {cipher_256.hex()}")
+    print(f"Decrypted:  {decrypted_256.hex()}")
+
+if __name__ == "__main__":
+    main()
