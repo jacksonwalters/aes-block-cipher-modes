@@ -38,7 +38,7 @@ def main():
     # Choose which byte to vary (0-15 for AES-128, 0-31 for AES-256)
     byte_to_vary = 0
     key_len = 16  # or 32 for AES-256
-    iterations = 1000
+    iterations = 10000
 
     results = vary_key_byte_and_time(byte_to_vary, iterations, key_len)
 
