@@ -6,7 +6,7 @@ They are not resistant to side-channel attacks, nor necessarily performant. They
 
 ## Advanced Encryption Standard (AES)
 
-- [ ] [AES. FIPS 197 (2001).](#aes)
+- [ ] [FIPS 197 (2001), i.e. AES](#aes)
 
 ## 🧱 NIST Block Cipher Modes (SP 800-38x Series)
 
