@@ -1,6 +1,6 @@
 # cryptographic standards
 
-This repository implements several cryptographic standards in the C programming langauge.
+This repository implements several cryptographic standards in the C programming langauge. AES also in Python to simulate timing attacks.
 
 They are not resistant to side-channel attacks, nor necessarily performant. They are primarily for educational use.
 
