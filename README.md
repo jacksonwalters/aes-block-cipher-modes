@@ -6,7 +6,7 @@ They are not resistant to side-channel attacks, nor necessarily performant. They
 
 ## AES
 
-- [ ] [AES](#AES)
+- [ ] [AES (Advanced Encryption Standard). FIPS 197 (2001).](#aes)
 
 ## 🧱 NIST Block Cipher Modes (SP 800-38x Series)
 
@@ -14,7 +14,7 @@ They are not resistant to side-channel attacks, nor necessarily performant. They
   - ECB (Electronic Codebook)  
   - CBC (Cipher Block Chaining)  
   - CFB (Cipher Feedback)  
-  - OFB (Output Feedback)  
+  - OFB (Output Feedback)
   - CTR (Counter Mode)
 
 - [ ] **SP 800-38B** — CMAC (Cipher-based Message Authentication Code)
