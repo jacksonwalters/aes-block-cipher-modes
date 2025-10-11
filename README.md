@@ -4,9 +4,9 @@ This repository implements several cryptographic standards in the C programming 
 
 They are not resistant to side-channel attacks, nor necessarily performant. They are primarily for educational use.
 
-## AES
+## Advanced Encryption Standard (AES)
 
-- [ ] [AES (Advanced Encryption Standard). FIPS 197 (2001).](#aes)
+- [ ] [AES. FIPS 197 (2001).](#aes)
 
 ## 🧱 NIST Block Cipher Modes (SP 800-38x Series)
 
