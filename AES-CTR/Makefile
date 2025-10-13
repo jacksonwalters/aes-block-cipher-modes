@@ -1,15 +1,12 @@
 # AES-CTR Makefile
-CC = gcc
-CFLAGS = -std=c11 -Wall -Wextra -O2 -Iinclude -I../AES/aes128_c
+.PHONY: all test_ctr clean
 
-SRC = src/ctr.c src/aes_wrapper.c ../AES/aes128_c/aes.c ../AES/aes128_c/key_expansion.c ../AES/aes128_c/sbox.c
-TEST = tests/test_ctr.c
-OUT = test_ctr
+all: test_ctr
 
-all: $(OUT)
-
-$(OUT): $(SRC) $(TEST)
-	$(CC) $(CFLAGS) $(SRC) $(TEST) -o $(OUT)
+test_ctr: src/ctr.c src/aes_wrapper.c ../AES/aes128_c/aes.c ../AES/aes128_c/key_expansion.c ../AES/aes128_c/sbox.c tests/test_ctr.c
+	gcc -std=c11 -Wall -Wextra -O2 -Iinclude -I../AES/aes128_c \
+	    src/ctr.c src/aes_wrapper.c ../AES/aes128_c/aes.c ../AES/aes128_c/key_expansion.c ../AES/aes128_c/sbox.c \
+	    tests/test_ctr.c -o test_ctr
 
 clean:
-	rm -f $(OUT) *.o
+	rm -f test_ctr

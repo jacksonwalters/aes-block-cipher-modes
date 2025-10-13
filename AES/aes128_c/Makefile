@@ -1,18 +1,10 @@
-# AES/aes128_c/Makefile
+# AES core Makefile
+.PHONY: all test_aes clean
 
-CC = gcc
-CFLAGS = -std=c11 -Wall -Wextra -O2 -I.
+all: test_aes
 
-SRCS = aes.c key_expansion.c sbox.c
-TEST = test_aes
-TEST_SRCS = test_aes.c $(SRCS)
-
-.PHONY: all clean
-
-all: $(TEST)
-
-$(TEST): $(TEST_SRCS)
-	$(CC) $(CFLAGS) -o $@ $(TEST_SRCS)
+test_aes: aes.c key_expansion.c sbox.c test_aes.c
+	gcc -std=c11 -Wall -Wextra -O2 -I. -o test_aes test_aes.c aes.c key_expansion.c sbox.c
 
 clean:
-	rm -f *.o $(TEST)
+	rm -f test_aes

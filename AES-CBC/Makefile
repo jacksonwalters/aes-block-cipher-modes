@@ -1,14 +1,12 @@
-CC = gcc
-CFLAGS = -std=c11 -Wall -Wextra -O2 -Iinclude -I../AES/aes128_c
+# AES-CBC Makefile
+.PHONY: all test_cbc clean
 
-SRC = src/cbc.c src/aes_wrapper.c ../AES/aes128_c/aes.c ../AES/aes128_c/key_expansion.c ../AES/aes128_c/sbox.c
-TEST = tests/test_cbc.c
-TARGET = test_cbc
+all: test_cbc
 
-all: $(TARGET)
-
-$(TARGET):
-	$(CC) $(CFLAGS) $(SRC) $(TEST) -o $(TARGET)
+test_cbc: src/cbc.c src/aes_wrapper.c ../AES/aes128_c/aes.c ../AES/aes128_c/key_expansion.c ../AES/aes128_c/sbox.c tests/test_cbc.c
+	gcc -std=c11 -Wall -Wextra -O2 -Iinclude -I../AES/aes128_c \
+	    src/cbc.c src/aes_wrapper.c ../AES/aes128_c/aes.c ../AES/aes128_c/key_expansion.c ../AES/aes128_c/sbox.c \
+	    tests/test_cbc.c -o test_cbc
 
 clean:
-	rm -f $(TARGET) *.o
+	rm -f test_cbc

@@ -1,5 +1,3 @@
-# Top-level Makefile
-
 .PHONY: all aes ctr cbc test clean
 
 all: aes ctr cbc
@@ -13,7 +11,6 @@ ctr:
 cbc:
 	$(MAKE) -C AES-CBC test_cbc
 
-# New target to run all tests
 test: aes ctr cbc
 	@echo
 	@echo "Running AES core test..."
