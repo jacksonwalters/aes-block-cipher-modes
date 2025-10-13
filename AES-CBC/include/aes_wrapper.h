@@ -5,13 +5,13 @@
 
 #define AES_BLOCK_SIZE 16
 
-/* context struct containing AES round keys and S-box */
+/* Context struct for AES CTR/CBC wrappers */
 struct aes_ctx {
     const uint8_t *round_keys;
     const uint8_t *sbox;
 };
 
-/* wrappers for single AES block encryption/decryption (adapter for modes) */
+/* wrappers for encrypt/decrypt single AES blocks (adapter for our modes) */
 void aes_block_wrapper(const uint8_t in[AES_BLOCK_SIZE],
                        uint8_t out[AES_BLOCK_SIZE],
                        const void *ctx);
@@ -20,4 +20,4 @@ void aes_block_wrapper_dec(const uint8_t in[AES_BLOCK_SIZE],
                            uint8_t out[AES_BLOCK_SIZE],
                            const void *ctx);
 
-#endif // AES_WRAPPER_H
+#endif /* AES_WRAPPER_H */
