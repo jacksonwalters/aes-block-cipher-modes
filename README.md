@@ -1,6 +1,7 @@
 # AES, block cipher standards
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
+![basic tests](https://github.com/jacksonwalters/aes-block-cipher-standards/actions/workflows/build.yml/badge.svg)
 
 This repository implements several cryptographic standards in the C programming langauge. 
 
