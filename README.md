@@ -1,8 +1,38 @@
 # cryptographic standards
 
-This repository implements several cryptographic standards in the C programming langauge. AES also in Python to simulate timing attacks.
+This repository implements several cryptographic standards in the C programming langauge. 
+
+Primarily, different modes of AES.
+
+AES is also in Python to simulate timing attacks.
+
+## Disclaimer
 
 They are not resistant to side-channel attacks, nor necessarily performant. They are primarily for educational use.
+
+## Build
+
+To build the binaries, run:
+
+```
+make
+```
+
+The binaries will be in `bin`. For example, one could run:
+
+```
+./bin/main_128
+```
+
+To run some examples with AES-128.
+
+## Test
+
+To run the suite of tests, run:
+
+```
+make test
+```
 
 ## Advanced Encryption Standard (AES)
 
@@ -82,13 +112,5 @@ For each possible value of the first plaintext byte (0x00 to 0xFF):
 - runs AES encryption many times (e.g., 10,000) on that same block, measuring the total time taken.
 - Records the total elapsed time for these encryptions.
 - Outputs a CSV where each line corresponds to a plaintext first byte value and the total time to encrypt 10,000 blocks with that first byte.
-
-### Usage
-
-To compile: `gcc -Wall -Wextra -O2 -o timing main_timing.c aes256.c key_expansion.c sbox.c`
-
-This produces a `timing.csv` file consisting of the time it takes to encode a single byte averaged over 10,000 runs. 
-
-One can view this plot with the Python code: `python plot_timing.py`
 
 ---
