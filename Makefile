@@ -10,7 +10,7 @@ TEST_DIR = tests
 OBJ_DIR = obj
 BIN_DIR = bin
 
-# Sources
+# Sources and objects
 SRCS = $(wildcard $(SRC_DIR)/*.c)
 OBJS = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRCS))
 
@@ -42,17 +42,14 @@ $(OBJ_DIR):
 $(BIN_DIR):
 	mkdir -p $(BIN_DIR)
 
-# Run all tests
+# Run all tests dynamically
 test: $(TESTS)
-	@echo "Running AES core tests..."
-	@$(BIN_DIR)/test_aes_128
-	@echo ""
-	@echo "Running CBC mode tests..."
-	@$(BIN_DIR)/test_cbc
-	@echo ""
-	@echo "Running CTR mode tests..."
-	@$(BIN_DIR)/test_ctr
-	@echo ""
+	@echo "Running all tests..."
+	@for t in $(TESTS); do \
+		echo "===== Running $$t ====="; \
+		$$t; \
+		echo ""; \
+	done
 	@echo "All tests completed."
 
 # Clean
