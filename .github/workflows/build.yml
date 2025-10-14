@@ -1,4 +1,4 @@
-name: Build and Test AES Library
+name: build/test
 
 on:
   push:
