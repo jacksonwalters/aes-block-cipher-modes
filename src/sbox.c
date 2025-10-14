@@ -1,4 +1,4 @@
-#include "sbox.h"
+#include "../include/sbox.h"
 #include <stdint.h>
 #include <stdio.h>
 
