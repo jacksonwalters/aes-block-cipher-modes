@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include <mach/mach_time.h>
 
 #include "../include/aes_256.h"
 #include "../include/key_expansion_256.h"
@@ -10,6 +9,8 @@
 
 #define NUM_REPEATS 10000  // Number of encryptions per test to amplify timing
 
+#ifdef __APPLE__
+#include <mach/mach_time.h>
 uint64_t get_time_ns() {
     static mach_timebase_info_data_t info = {0};
     if (info.denom == 0) {
@@ -18,6 +19,14 @@ uint64_t get_time_ns() {
     uint64_t t = mach_absolute_time();
     return t * info.numer / info.denom;
 }
+#else
+#include <time.h>
+uint64_t get_time_ns() {
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (uint64_t)ts.tv_sec * 1000000000ULL + ts.tv_nsec;
+}
+#endif
 
 int main() {
     uint8_t key[AES256_KEY_SIZE] = {
@@ -36,9 +45,9 @@ int main() {
     uint8_t plaintext[16] = {0};
     uint8_t ciphertext[16];
 
-    FILE *fp = fopen("timing.csv", "w");
+    FILE *fp = fopen("data/timing.csv", "w");
     if (!fp) {
-        perror("Failed to open timing.csv for writing");
+        perror("Failed to open data/timing.csv for writing");
         return 1;
     }
 
@@ -60,6 +69,6 @@ int main() {
 
     fclose(fp);
 
-    printf("Timing data written to timing.csv\n");
+    printf("Timing data written to data/timing.csv\n");
     return 0;
 }

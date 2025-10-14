@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <stdint.h>
-#include <mach/mach_time.h>
 
 #include "sbox.h"  // make sure this declares initialize_aes_sbox and sbox array
 
 #define NUM_REPEATS 1000000  // Repeat enough times for measurable timing
 
+#ifdef __APPLE__
+#include <mach/mach_time.h>
 uint64_t get_time_ns() {
     static mach_timebase_info_data_t info = {0};
     if (info.denom == 0) {
@@ -14,14 +15,22 @@ uint64_t get_time_ns() {
     uint64_t t = mach_absolute_time();
     return t * info.numer / info.denom;
 }
+#else
+#include <time.h>
+uint64_t get_time_ns() {
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (uint64_t)ts.tv_sec * 1000000000ULL + ts.tv_nsec;
+}
+#endif
 
 int main() {
     uint8_t sbox[256];
     initialize_aes_sbox(sbox);
 
-    FILE *fp = fopen("sbox_timing.csv", "w");
+    FILE *fp = fopen("data/sbox_timing.csv", "w");
     if (!fp) {
-        perror("Failed to open sbox_timing.csv for writing");
+        perror("Failed to open data/sbox_timing.csv for writing");
         return 1;
     }
 
@@ -42,6 +51,6 @@ int main() {
     }
 
     fclose(fp);
-    printf("S-box timing data written to sbox_timing.csv\n");
+    printf("S-box timing data written to data/sbox_timing.csv\n");
     return 0;
 }
