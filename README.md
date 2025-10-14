@@ -4,7 +4,7 @@ This repository implements several cryptographic standards in the C programming 
 
 Primarily, different modes of AES.
 
-AES is also in Python to simulate timing attacks.
+AES is also implemented in Python to simulate timing attacks.
 
 ## Disclaimer
 
