@@ -1,5 +1,7 @@
 # AES, block cipher standards
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
+
 This repository implements several cryptographic standards in the C programming langauge. 
 
 Primarily, different modes of AES.
