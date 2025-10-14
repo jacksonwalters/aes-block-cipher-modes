@@ -1,4 +1,4 @@
-# cryptographic standards
+# AES, block cipher standards
 
 This repository implements several cryptographic standards in the C programming langauge. 
 
