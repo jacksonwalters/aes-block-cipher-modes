@@ -39,18 +39,18 @@ make test
 
 ## Advanced Encryption Standard (AES)
 
-- [ ] [FIPS 197 (2001), i.e. AES](#aes)
+- [x] [FIPS 197 (2001), i.e. AES](#aes)
 
 ## 🧱 NIST Block Cipher Modes (SP 800-38x Series)
 
-- [ ] **SP 800-38A** — Block Cipher Modes of Operation  
+- [x] **SP 800-38A** — Block Cipher Modes of Operation  
   - ECB (Electronic Codebook)  
   - CBC (Cipher Block Chaining)  
   - CFB (Cipher Feedback)  
   - OFB (Output Feedback)
   - CTR (Counter Mode)
 
-- [ ] **SP 800-38B** — CMAC (Cipher-based Message Authentication Code)
+- [x] **SP 800-38B** — CMAC (Cipher-based Message Authentication Code)
 
 - [ ] **SP 800-38C** — CCM (Counter with CBC-MAC)
 
