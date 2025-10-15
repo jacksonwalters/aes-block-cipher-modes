@@ -52,7 +52,7 @@ make test
 
 - [x] **SP 800-38B** — CMAC (Cipher-based Message Authentication Code)
 
-- [ ] **SP 800-38C** — CCM (Counter with CBC-MAC)
+- [x] **SP 800-38C** — CCM (Counter with CBC-MAC)
 
 - [ ] **SP 800-38D** — GCM and GMAC (Galois/Counter Mode)
 
