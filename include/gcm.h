@@ -7,7 +7,6 @@
 
 #define GCM_BLOCK_SIZE 16
 
-/* GCM context */
 struct gcm_ctx {
     struct aes_ctx aes;       /* AES context for block operations */
     uint8_t H[GCM_BLOCK_SIZE]; /* GHASH subkey */
@@ -17,12 +16,12 @@ struct gcm_ctx {
     uint8_t sbox[256];        /* AES S-box */
 };
 
-/* Initialize GCM context with key and IV */
+/* Initialize GCM context with key and IV (handles any IV length) */
 void gcm_init(struct gcm_ctx *ctx,
               const uint8_t *key, size_t key_len,
               const uint8_t *iv, size_t iv_len);
 
-/* Encrypt plaintext and compute tag */
+/* Encrypt plaintext and compute tag (tag_len <= 16) */
 void gcm_encrypt(struct gcm_ctx *ctx,
                  const uint8_t *plaintext, size_t len,
                  const uint8_t *aad, size_t aad_len,
