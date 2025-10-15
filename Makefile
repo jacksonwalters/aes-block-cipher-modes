@@ -2,6 +2,11 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -Iinclude -g
 
+# Debug toggle
+ifeq ($(DEBUG),1)
+    CFLAGS += -DCCM_DEBUG
+endif
+
 # Directories
 SRC_DIR = src
 INCLUDE_DIR = include

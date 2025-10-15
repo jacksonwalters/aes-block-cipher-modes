@@ -3,43 +3,47 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include "aes_wrapper.h"  // AES context
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/**
- * AES-CCM Encryption
- * @param plaintext  Input plaintext
- * @param pt_len     Length of plaintext
- * @param associated Associated data (can be NULL)
- * @param ad_len     Length of associated data
- * @param nonce      Nonce
- * @param n_len      Nonce length (7–13 bytes)
- * @param tag_len    Length of authentication tag (4,6,8,10,12,14,16)
- * @param ciphertext Output ciphertext (same length as plaintext)
- * @param tag        Output authentication tag
- * @param ctx        AES context
- */
-void aes_ccm_encrypt(const uint8_t *plaintext, size_t pt_len,
-                     const uint8_t *associated, size_t ad_len,
-                     const uint8_t *nonce, size_t n_len,
-                     size_t tag_len,
-                     uint8_t *ciphertext, uint8_t *tag,
-                     const struct aes_ctx *ctx);
+#define AES_BLOCK_SIZE 16
 
-/**
- * AES-CCM Decryption
- * Returns 0 if authentication passes, 1 if it fails
- */
-int aes_ccm_decrypt(const uint8_t *ciphertext, size_t ct_len,
-                    const uint8_t *associated, size_t ad_len,
-                    const uint8_t *nonce, size_t n_len,
-                    size_t tag_len,
-                    const uint8_t *tag,
-                    uint8_t *plaintext,
-                    const struct aes_ctx *ctx);
+// Unified AES block encryption function type
+typedef void (*block_encrypt_fn)(const uint8_t in[AES_BLOCK_SIZE],
+                                 uint8_t out[AES_BLOCK_SIZE],
+                                 const void *key_ctx);
+
+// AES-CCM encryption
+int ccm_encrypt(
+    const void *key_ctx,
+    block_encrypt_fn encrypt,
+    const uint8_t *nonce, size_t n,
+    const uint8_t *aad, size_t aad_len,
+    const uint8_t *plaintext, size_t payload_len,
+    uint8_t *ciphertext, size_t *ciphertext_len,
+    size_t t
+);
+
+// AES-CCM decryption
+int ccm_decrypt(
+    const void *key_ctx,
+    block_encrypt_fn encrypt,
+    const uint8_t *nonce, size_t n,
+    const uint8_t *aad, size_t aad_len,
+    const uint8_t *ciphertext, size_t ciphertext_len,
+    uint8_t *plaintext, size_t *plaintext_len,
+    size_t t
+);
+
+#ifdef CCM_DEBUG
+#include <stdio.h>
+#define CCM_LOG(fmt, ...) \
+    do { fprintf(stderr, "[CCM] " fmt "\n", ##__VA_ARGS__); } while(0)
+#else
+#define CCM_LOG(fmt, ...) do {} while(0)
+#endif
 
 #ifdef __cplusplus
 }

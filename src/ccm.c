@@ -1,143 +1,204 @@
 #include "ccm.h"
 #include "ctr.h"
-#include "cmac.h"
-#include "aes_wrapper.h"
-#include <stdint.h>
-#include <stdlib.h>
+#include "cbc.h"
 #include <string.h>
+#include <stdlib.h>
 #include <stdio.h>
 
-/* Format B0 as per SP 800-38C */
-static void format_b0(uint8_t B0[16], size_t pt_len, size_t ad_len,
-                      size_t tag_len, const uint8_t *nonce, size_t n_len)
-{
-    memset(B0, 0, 16);
+#define AES_BLK AES_BLOCK_SIZE
+
+/* XOR helper */
+static inline void xor_block(uint8_t out[AES_BLK],
+                             const uint8_t a[AES_BLK],
+                             const uint8_t b[AES_BLK]) {
+    for (int i = 0; i < AES_BLK; i++) out[i] = a[i] ^ b[i];
+}
+
+/* Build B0 block (CCM §6.1) */
+static void build_b0(uint8_t b0[AES_BLK], size_t t, size_t n, size_t payload_len, const uint8_t *nonce, int has_aad) {
+    size_t q = 15 - n;
     uint8_t flags = 0;
-    if (ad_len > 0) flags |= 0x40;             // Adata present
-    flags |= ((tag_len - 2)/2) << 3;           // M field
-    flags |= (15 - n_len);                     // L field
-    B0[0] = flags;
-    memcpy(B0+1, nonce, n_len);
-    size_t q = 15 - n_len;
-    for (size_t i = 0; i < q; i++)
-        B0[15 - i] = (pt_len >> (8*i)) & 0xFF; // Big-endian length
+    if (has_aad) flags |= 0x40;
+    flags |= (uint8_t)(((t - 2) / 2) << 3);
+    flags |= (uint8_t)((q - 1) & 0x07);
+    b0[0] = flags;
+
+    memcpy(b0 + 1, nonce, n);
+
+    /* write payload length in q-byte big-endian */
+    for (size_t i = 0; i < q; i++) {
+        b0[15 - i] = (uint8_t)(payload_len >> (8 * i));
+    }
 }
 
-/* Format AAD for CMAC */
-static size_t write_aad(uint8_t *buf, const uint8_t *aad, size_t ad_len)
+/* Build initial counter block for CTR */
+static void build_ctr0(uint8_t ctr[AES_BLK], size_t n, const uint8_t *nonce) {
+    size_t q = 15 - n;
+    ctr[0] = (uint8_t)(q - 1);
+    memcpy(ctr + 1, nonce, n);
+    memset(ctr + 1 + n, 0, q);
+}
+
+/* Format AAD */
+static size_t format_aad(uint8_t **out, size_t aad_len, const uint8_t *aad) {
+    if (aad_len == 0) return 0;
+    size_t total = 2 + aad_len;
+    size_t padded = ((total + AES_BLK - 1) / AES_BLK) * AES_BLK;
+    uint8_t *buf = (uint8_t*)calloc(padded, 1);
+    if (!buf) return 0;
+    buf[0] = (uint8_t)(aad_len >> 8);
+    buf[1] = (uint8_t)(aad_len & 0xff);
+    memcpy(buf + 2, aad, aad_len);
+    *out = buf;
+    return padded;
+}
+
+int ccm_encrypt(const void *key_ctx,
+                block_encrypt_fn encrypt,
+                const uint8_t *nonce, size_t n,
+                const uint8_t *aad, size_t aad_len,
+                const uint8_t *plaintext, size_t payload_len,
+                uint8_t *ciphertext, size_t *ciphertext_len,
+                size_t t)
 {
+    if (!encrypt || !nonce || !ciphertext || !ciphertext_len) return -1;
+    if (n < 7 || n > 13) return -2;
+    if (!(t == 4 || t == 6 || t == 8 || t == 10 || t == 12 || t == 14 || t == 16)) return -3;
+
+#ifdef CCM_DEBUG
+    CCM_LOG("Encrypting payload_len=%zu, aad_len=%zu, t=%zu", payload_len, aad_len, t);
+#endif
+
+    /* Step 1: Build B0 */
+    uint8_t b0[AES_BLK];
+    build_b0(b0, t, n, payload_len, nonce, aad_len > 0);
+
+    /* Step 2: Format AAD */
+    uint8_t *aad_formatted = NULL;
+    size_t aad_formatted_len = format_aad(&aad_formatted, aad_len, aad);
+
+    /* Step 3: Build CBC-MAC input */
+    size_t mac_len = AES_BLK + aad_formatted_len;
+    if (payload_len > 0) {
+        size_t padded_payload_len = ((payload_len + AES_BLK - 1) / AES_BLK) * AES_BLK;
+        mac_len += padded_payload_len;
+    }
+    uint8_t *mac_input = (uint8_t*)calloc(mac_len, 1);
     size_t offset = 0;
-    if (ad_len < 0xFF00) {
-        buf[offset++] = (ad_len >> 8) & 0xFF;
-        buf[offset++] = ad_len & 0xFF;
-    } else {
-        buf[offset++] = 0xFF;
-        buf[offset++] = 0xFE;
-        buf[offset++] = (ad_len >> 24) & 0xFF;
-        buf[offset++] = (ad_len >> 16) & 0xFF;
-        buf[offset++] = (ad_len >> 8) & 0xFF;
-        buf[offset++] = ad_len & 0xFF;
+    memcpy(mac_input + offset, b0, AES_BLK);
+    offset += AES_BLK;
+    if (aad_formatted_len > 0) {
+        memcpy(mac_input + offset, aad_formatted, aad_formatted_len);
+        offset += aad_formatted_len;
     }
-    if (aad && ad_len > 0) {
-        memcpy(buf + offset, aad, ad_len);
-        offset += ad_len;
+    if (payload_len > 0) {
+        memcpy(mac_input + offset, plaintext, payload_len);
     }
-    size_t pad = (16 - (offset % 16)) % 16;
-    if (pad) memset(buf + offset, 0, pad);
-    return offset + pad;
-}
 
+    /* Step 4: CBC-MAC */
+    uint8_t X[AES_BLK] = {0};
+    for (size_t i = 0; i < mac_len; i += AES_BLK) {
+        uint8_t blk[AES_BLK];
+        xor_block(blk, X, mac_input + i);
+        encrypt(blk, X, key_ctx);
+    }
 
-/* AES-CCM encryption */
-void aes_ccm_encrypt(const uint8_t *pt, size_t pt_len,
-                     const uint8_t *aad, size_t ad_len,
-                     const uint8_t *nonce, size_t n_len,
-                     size_t tag_len,
-                     uint8_t *ct, uint8_t *tag,
-                     const struct aes_ctx *ctx)
-{
-    uint8_t B0[16];
-    format_b0(B0, pt_len, ad_len, tag_len, nonce, n_len);
-    printf("B0: "); for (size_t i=0;i<16;i++) printf("%02x ", B0[i]); printf("\n");
-
-    /* CMAC input: B0 || AAD || PT */
-    size_t aad_len_formatted = (aad && ad_len>0) ? ((ad_len<0xFF00)?2:6)+ad_len : 0;
-    size_t pt_pad_len = (pt_len + 15) & ~0x0F; // pad to 16 bytes
-    size_t cmac_len = 16 + aad_len_formatted + pt_pad_len;
-
-    uint8_t *cmac_buf = calloc(1, cmac_len);
-    memcpy(cmac_buf, B0, 16);
-    if (aad_len_formatted > 0)
-        write_aad(cmac_buf + 16, aad, ad_len);
-    memcpy(cmac_buf + 16 + aad_len_formatted, pt, pt_len);
-    printf("CMAC Input: "); for (size_t i=0;i<cmac_len;i++) printf("%02x ", cmac_buf[i]); printf("\n");
-
-    uint8_t full_tag[16];
-    aes_cmac(cmac_buf, cmac_len, full_tag, ctx);
-    free(cmac_buf);
-    printf("CMAC Full Tag: "); for (size_t i=0;i<tag_len;i++) printf("%02x ", full_tag[i]); printf("\n");
-
-    /* Prepare counter blocks for CTR */
-    uint8_t ctr[16] = {0};
-    ctr[0] = 15 - n_len;
-    memcpy(ctr+1, nonce, n_len);
+    /* Step 5: CTR encrypt */
+    uint8_t ctr[AES_BLK];
+    build_ctr0(ctr, n, nonce);
+    uint8_t s0[AES_BLK];
+    encrypt(ctr, s0, key_ctx);
 
     /* Encrypt plaintext */
-    aes_ctr_crypt(pt, ct, pt_len, ctr, (block_encrypt_fn)aes_block_wrapper, ctx);
-    
-    /* Encrypt tag with S0 */
-    memset(ctr + 1 + n_len, 0, 15 - n_len); // Counter = 0
-    uint8_t S0[16];
-    aes_block_wrapper(ctr, S0, ctx);
-    for (size_t i = 0; i < tag_len; i++)
-        tag[i] = full_tag[i] ^ S0[i];
-    printf("S0: "); for (size_t i=0;i<16;i++) printf("%02x ", S0[i]); printf("\n");
-    printf("Encrypted Tag: "); for (size_t i=0;i<tag_len;i++) printf("%02x ", tag[i]); printf("\n");
+    ctr_increment(ctr);
+    aes_ctr_crypt(plaintext, ciphertext, payload_len, ctr, encrypt, key_ctx);
+
+    /* Compute tag */
+    uint8_t tag_buf[AES_BLK];
+    xor_block(tag_buf, X, s0);
+    memcpy(ciphertext + payload_len, tag_buf, t);
+    *ciphertext_len = payload_len + t;
+
+    free(aad_formatted);
+    free(mac_input);
+
+#ifdef CCM_DEBUG
+    CCM_LOG("Encryption complete, tag_len=%zu", t);
+#endif
+    return 0;
 }
 
-/* AES-CCM decryption */
-int aes_ccm_decrypt(const uint8_t *ct, size_t ct_len,
-                    const uint8_t *aad, size_t ad_len,
-                    const uint8_t *nonce, size_t n_len,
-                    size_t tag_len,
-                    const uint8_t *tag,
-                    uint8_t *pt,
-                    const struct aes_ctx *ctx)
+int ccm_decrypt(const void *key_ctx,
+                block_encrypt_fn encrypt,
+                const uint8_t *nonce, size_t n,
+                const uint8_t *aad, size_t aad_len,
+                const uint8_t *ciphertext, size_t ciphertext_len,
+                uint8_t *plaintext, size_t *plaintext_len,
+                size_t t)
 {
-    uint8_t ctr[16] = {0};
-    ctr[0] = 15 - n_len;
-    memcpy(ctr+1, nonce, n_len);
+    if (ciphertext_len < t) return -1;
+    size_t payload_len = ciphertext_len - t;
 
-    /* Decrypt ciphertext */
-    aes_ctr_crypt(ct, pt, ct_len, ctr, (block_encrypt_fn)aes_block_wrapper, ctx);
+#ifdef CCM_DEBUG
+    CCM_LOG("Decrypting payload_len=%zu, aad_len=%zu, t=%zu", payload_len, aad_len, t);
+#endif
 
-    /* Recompute CMAC */
-    uint8_t B0[16];
-    format_b0(B0, ct_len, ad_len, tag_len, nonce, n_len);
+    /* Step 1: Decrypt payload */
+    uint8_t ctr[AES_BLK];
+    build_ctr0(ctr, n, nonce);
+    ctr_increment(ctr);
+    aes_ctr_crypt(ciphertext, plaintext, payload_len, ctr, encrypt, key_ctx);
 
-    size_t aad_len_formatted = (aad && ad_len>0) ? ((ad_len<0xFF00)?2:6)+ad_len : 0;
-    size_t pt_pad_len = (ct_len + 15) & ~0x0F;
-    size_t cmac_len = 16 + aad_len_formatted + pt_pad_len;
+    /* Step 2: Recompute CBC-MAC */
+    uint8_t b0[AES_BLK];
+    build_b0(b0, t, n, payload_len, nonce, aad_len > 0);
+    uint8_t *aad_formatted = NULL;
+    size_t aad_formatted_len = format_aad(&aad_formatted, aad_len, aad);
 
-    uint8_t *cmac_buf = calloc(1, cmac_len);
-    memcpy(cmac_buf, B0, 16);
-    if (aad_len_formatted > 0)
-        write_aad(cmac_buf + 16, aad, ad_len);
-    memcpy(cmac_buf + 16 + aad_len_formatted, pt, ct_len);
+    size_t mac_len = AES_BLK + aad_formatted_len;
+    if (payload_len > 0) {
+        size_t padded_payload_len = ((payload_len + AES_BLK - 1) / AES_BLK) * AES_BLK;
+        mac_len += padded_payload_len;
+    }
+    uint8_t *mac_input = (uint8_t*)calloc(mac_len, 1);
+    size_t offset = 0;
+    memcpy(mac_input + offset, b0, AES_BLK);
+    offset += AES_BLK;
+    if (aad_formatted_len > 0) {
+        memcpy(mac_input + offset, aad_formatted, aad_formatted_len);
+        offset += aad_formatted_len;
+    }
+    if (payload_len > 0) {
+        memcpy(mac_input + offset, plaintext, payload_len);
+    }
 
-    uint8_t full_tag[16];
-    aes_cmac(cmac_buf, cmac_len, full_tag, ctx);
-    free(cmac_buf);
+    uint8_t X[AES_BLK] = {0};
+    for (size_t i = 0; i < mac_len; i += AES_BLK) {
+        uint8_t blk[AES_BLK];
+        xor_block(blk, X, mac_input + i);
+        encrypt(blk, X, key_ctx);
+    }
 
-    /* Encrypt tag with S0 */
-    memset(ctr + 1 + n_len, 0, 15 - n_len); // Counter = 0
-    uint8_t S0[16];
-    aes_block_wrapper(ctr, S0, ctx);
-    for (size_t i = 0; i < tag_len; i++)
-        full_tag[i] ^= S0[i];
+    /* Step 3: Verify tag */
+    uint8_t s0[AES_BLK];
+    build_ctr0(ctr, n, nonce);
+    encrypt(ctr, s0, key_ctx);
 
-    printf("Recomputed Tag: "); for (size_t i=0;i<tag_len;i++) printf("%02x ", full_tag[i]); printf("\n");
-    printf("Input Tag: "); for (size_t i=0;i<tag_len;i++) printf("%02x ", tag[i]); printf("\n");
+    uint8_t expected_tag[AES_BLK];
+    xor_block(expected_tag, X, s0);
 
-    return memcmp(full_tag, tag, tag_len) == 0 ? 0 : 1;
+    const uint8_t *received_tag = ciphertext + payload_len;
+    int diff = 0;
+    for (size_t i = 0; i < t; i++) diff |= (expected_tag[i] ^ received_tag[i]);
+
+    free(aad_formatted);
+    free(mac_input);
+
+    if (diff != 0) {
+        memset(plaintext, 0, payload_len);
+        return -2;
+    }
+
+    *plaintext_len = payload_len;
+    return 0;
 }
