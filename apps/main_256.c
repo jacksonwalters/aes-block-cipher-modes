@@ -29,7 +29,7 @@ int main() {
     initialize_aes_sbox(sbox);
 
     uint8_t expanded_key[AES256_EXPANDED_KEY_SIZE];
-    aes256_key_expansion(key, expanded_key, sbox);
+    aes_key_expansion_256(key, expanded_key, sbox);
 
     const char *plaintext_str = "The quick brown fox jumps over the lazy dog";
 

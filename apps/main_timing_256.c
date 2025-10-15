@@ -40,7 +40,7 @@ int main() {
     initialize_aes_sbox(sbox);
 
     uint8_t expanded_keys[AES256_EXPANDED_KEY_SIZE];
-    aes256_key_expansion(key, expanded_keys, sbox);
+    aes_key_expansion_256(key, expanded_keys, sbox);
 
     uint8_t plaintext[16] = {0};
     uint8_t ciphertext[16];
