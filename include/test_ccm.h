@@ -16,7 +16,7 @@ static const uint8_t CCM_KEY[16] = {
 };
 
 /* ===================== Example 1 =====================
- * Klen = 128, Tlen = 32, Nlen = 56, Alen = 64, Plen = 32
+ * Klen = 128, Tlen = 32 (4 octets), Nlen = 56 (7 octets), Alen = 64 (8 octets), Plen = 32 (4 octets)
  */
 #define CCM_EX1_NONCE_LEN 7
 #define CCM_EX1_AAD_LEN 8
@@ -42,7 +42,7 @@ static const uint8_t CCM_EX1_C[CCM_EX1_C_LEN] = {
 };
 
 /* ===================== Example 2 =====================
- * Klen = 128, Tlen = 48, Nlen = 64, Alen = 128, Plen = 128
+ * Klen = 128, Tlen = 48 (6 octets), Nlen = 64 (8 octets), Alen = 128 (16 octets), Plen = 128 (16 octets)
  */
 #define CCM_EX2_NONCE_LEN 8
 #define CCM_EX2_AAD_LEN 16
@@ -71,7 +71,7 @@ static const uint8_t CCM_EX2_C[CCM_EX2_C_LEN] = {
 };
 
 /* ===================== Example 3 =====================
- * Klen = 128, Tlen = 64, Nlen = 96, Alen = 160, Plen = 192
+ * Klen = 128, Tlen = 64 (8 octets), Nlen = 96 (12 octets), Alen = 160 (20 octets), Plen = 192 (24 octets)
  */
 #define CCM_EX3_NONCE_LEN 12
 #define CCM_EX3_AAD_LEN 20
