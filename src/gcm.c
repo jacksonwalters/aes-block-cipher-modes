@@ -2,6 +2,7 @@
 #include "ctr.h"
 #include "sbox.h"
 #include "key_expansion_128.h"
+#include "key_expansion_192.h"
 #include "key_expansion_256.h"
 #include "aes_wrapper.h"
 #include <string.h>
@@ -76,15 +77,21 @@ static void ghash(uint8_t out[16], const uint8_t *aad, size_t aad_len,
     memcpy(out,Y,16);
 }
 
-/* Initialize GCM context */
-void gcm_init(struct gcm_ctx *ctx, const uint8_t *key, size_t key_len,
+/* Initialize GCM context - returns 0 on success, -1 on error */
+int gcm_init(struct gcm_ctx *ctx, const uint8_t *key, size_t key_len,
               const uint8_t *iv, size_t iv_len){
 
     initialize_aes_sbox(ctx->sbox);
 
-    if(key_len==16) aes_key_expansion(key,ctx->round_keys,ctx->sbox);
-    else if(key_len==32) aes_key_expansion_256(key,ctx->round_keys,ctx->sbox);
-    else { fprintf(stderr,"Unsupported key length\n"); return; }
+    if(key_len==16) {
+        aes_key_expansion(key,ctx->round_keys,ctx->sbox);
+    } else if(key_len==24) {
+        aes_key_expansion_192(key,ctx->round_keys,ctx->sbox);
+    } else if(key_len==32) {
+        aes_key_expansion_256(key,ctx->round_keys,ctx->sbox);
+    } else {
+        return -1;  // Unsupported key length
+    }
 
     ctx->aes.round_keys=ctx->round_keys;
     ctx->aes.sbox=ctx->sbox;
@@ -101,6 +108,8 @@ void gcm_init(struct gcm_ctx *ctx, const uint8_t *key, size_t key_len,
         /* GHASH IV */
         ghash(ctx->J0, NULL,0,iv,iv_len,ctx->H);
     }
+    
+    return 0;  // Success
 }
 
 /* Encrypt with AES-GCM */

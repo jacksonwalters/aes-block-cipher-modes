@@ -17,7 +17,7 @@ struct gcm_ctx {
 };
 
 /* Initialize GCM context with key and IV (handles any IV length) */
-void gcm_init(struct gcm_ctx *ctx,
+int gcm_init(struct gcm_ctx *ctx,
               const uint8_t *key, size_t key_len,
               const uint8_t *iv, size_t iv_len);
 
