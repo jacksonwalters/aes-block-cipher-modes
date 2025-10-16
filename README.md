@@ -3,11 +3,13 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
 ![basic tests](https://github.com/jacksonwalters/aes-block-cipher-standards/actions/workflows/build.yml/badge.svg)
 
-This repository implements several cryptographic standards in the C programming langauge. 
+This repository implements several cryptographic standards in C. 
 
-Primarily, different modes of AES.
+Primarily, different modes of AES from NIST Special Publication 800-38X. 
 
-AES is also implemented in Python to simulate timing attacks.
+[https://csrc.nist.gov/pubs/sp/800/38/a/final](https://csrc.nist.gov/pubs/sp/800/38/a/final)
+
+AES is also implemented in Python to simulate timing attacks by looking at S-box leakage.
 
 ## Disclaimer
 
