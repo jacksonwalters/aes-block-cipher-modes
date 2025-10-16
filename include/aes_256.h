@@ -1,5 +1,5 @@
-#ifndef AES_H
-#define AES_H
+#ifndef AES_256_H
+#define AES_256_H
 
 #include <stdint.h>
 #include "aes_defs.h" // AES-256 constants
@@ -12,6 +12,6 @@ void aes256_encrypt_block(const uint8_t input[AES256_BLOCK_SIZE], uint8_t output
 void aes256_decrypt_block(const uint8_t input[AES256_BLOCK_SIZE], uint8_t output[AES256_BLOCK_SIZE],
                           const uint8_t round_keys[AES256_EXPANDED_KEY_SIZE], const uint8_t sbox[256]);
 
-#endif // AES_H
+#endif // AES_256_H
 
 

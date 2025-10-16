@@ -45,7 +45,7 @@ int main(void) {
     uint8_t sbox[256];
     initialize_aes_sbox(sbox);
     aes_key_expansion(key, round_keys, sbox);
-    struct aes_ctx ctx = { .round_keys = round_keys, .sbox = sbox };
+    struct aes_ctx ctx = { .round_keys = round_keys, .sbox = sbox, .key_len = 16};
 
     uint8_t ciphertext[64] = {0};
     uint8_t decrypted[64] = {0};

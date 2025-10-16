@@ -47,15 +47,26 @@ $(OBJ_DIR):
 $(BIN_DIR):
 	mkdir -p $(BIN_DIR)
 
-# Run all tests dynamically
+# Run all tests dynamically and fail CI if any test fails
 test: $(TESTS)
 	@echo "Running all tests..."
-	@for t in $(TESTS); do \
+	@failed=0; \
+	for t in $(TESTS); do \
 		echo "===== Running $$t ====="; \
 		$$t; \
+		ret=$$?; \
+		if [ $$ret -ne 0 ]; then \
+			echo ">>> TEST FAILED: $$t <<<"; \
+			failed=1; \
+		fi; \
 		echo ""; \
-	done
-	@echo "All tests completed."
+	done; \
+	if [ $$failed -ne 0 ]; then \
+		echo "Some tests FAILED!"; \
+		exit 1; \
+	else \
+		echo "All tests PASSED."; \
+	fi
 
 # Clean
 clean:

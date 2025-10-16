@@ -69,12 +69,12 @@ int main(void) {
 
     // Encrypt block by block
     for (size_t i = 0; i < padded_len; i += BLOCK_SIZE) {
-        aes_encrypt_block(&plaintext[i], &ciphertext[i], round_keys, sbox);
+        aes128_encrypt_block(&plaintext[i], &ciphertext[i], round_keys, sbox);
     }
 
     // Decrypt block by block
     for (size_t i = 0; i < padded_len; i += BLOCK_SIZE) {
-        aes_decrypt_block(&ciphertext[i], &decrypted[i], round_keys, sbox);
+        aes128_decrypt_block(&ciphertext[i], &decrypted[i], round_keys, sbox);
     }
 
     // Print results

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#include "sbox.h"  // make sure this declares initialize_aes_sbox and sbox array
+#include "../include/sbox.h"  // make sure this declares initialize_aes_sbox and sbox array
 
 #define NUM_REPEATS 1000000  // Repeat enough times for measurable timing
 
