@@ -61,7 +61,7 @@ static void mix_columns(uint8_t state[16]) {
 }
 
 // AES-192 Encryption (12 rounds)
-void aes_encrypt_block_192(const uint8_t input[16], uint8_t output[16], 
+void aes192_encrypt_block(const uint8_t input[16], uint8_t output[16], 
                            const uint8_t round_keys[208], const uint8_t sbox[256]) {
     uint8_t state[16];
 
@@ -153,7 +153,7 @@ static void inv_sub_bytes(uint8_t state[16], const uint8_t inv_sbox[256]) {
 }
 
 // AES-192 Decryption (12 rounds)
-void aes_decrypt_block_192(const uint8_t input[16], uint8_t output[16], 
+void aes192_decrypt_block(const uint8_t input[16], uint8_t output[16], 
                            const uint8_t round_keys[208], const uint8_t sbox[256]) {
     uint8_t state[16];
     uint8_t inv_sbox[256];

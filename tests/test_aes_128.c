@@ -15,8 +15,8 @@ int main(void) {
     initialize_aes_sbox(sbox);
     aes_key_expansion(key, round_keys, sbox);
 
-    aes_encrypt_block(block, enc, round_keys, sbox);
-    aes_decrypt_block(enc, dec, round_keys, sbox);
+    aes128_encrypt_block(block, enc, round_keys, sbox);
+    aes128_decrypt_block(enc, dec, round_keys, sbox);
 
     if(memcmp(block, dec, 16) == 0) {
         printf("AES core round-trip OK\n");
