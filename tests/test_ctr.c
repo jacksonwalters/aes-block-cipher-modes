@@ -18,7 +18,7 @@ int main(void) {
 
     aes_key_expansion(key, round_keys, sbox);
 
-    struct aes_ctx ctx = { .round_keys = round_keys, .sbox = sbox };
+    struct aes_ctx ctx = { .round_keys = round_keys, .sbox = sbox, .key_len = 16};
 
     const uint8_t pt[] = "The quick brown fox jumps over 13 lazy dogs!";
     size_t len = strlen((const char*)pt);

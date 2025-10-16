@@ -83,30 +83,31 @@ int gcm_init(struct gcm_ctx *ctx, const uint8_t *key, size_t key_len,
 
     initialize_aes_sbox(ctx->sbox);
 
-    if(key_len==16) {
-        aes_key_expansion(key,ctx->round_keys,ctx->sbox);
-    } else if(key_len==24) {
-        aes_key_expansion_192(key,ctx->round_keys,ctx->sbox);
-    } else if(key_len==32) {
-        aes_key_expansion_256(key,ctx->round_keys,ctx->sbox);
+    if(key_len == 16) {
+        aes_key_expansion(key, ctx->round_keys, ctx->sbox);
+    } else if(key_len == 24) {
+        aes_key_expansion_192(key, ctx->round_keys, ctx->sbox);
+    } else if(key_len == 32) {
+        aes_key_expansion_256(key, ctx->round_keys, ctx->sbox);
     } else {
         return -1;  // Unsupported key length
     }
 
-    ctx->aes.round_keys=ctx->round_keys;
-    ctx->aes.sbox=ctx->sbox;
+    ctx->aes.round_keys = ctx->round_keys;
+    ctx->aes.sbox = ctx->sbox;
+    ctx->aes.key_len = key_len;  // Set the key length!
 
     /* H = AES(K,0^128) */
-    uint8_t zero[16]={0};
-    aes_block_wrapper(zero,ctx->H,&ctx->aes);
+    uint8_t zero[16] = {0};
+    aes_block_wrapper(zero, ctx->H, &ctx->aes);
 
     /* IV -> J0 */
-    if(iv_len==12){
-        memcpy(ctx->J0,iv,12);
-        ctx->J0[15]=0x01;
+    if(iv_len == 12){
+        memcpy(ctx->J0, iv, 12);
+        ctx->J0[15] = 0x01;
     } else {
         /* GHASH IV */
-        ghash(ctx->J0, NULL,0,iv,iv_len,ctx->H);
+        ghash(ctx->J0, NULL, 0, iv, iv_len, ctx->H);
     }
     
     return 0;  // Success

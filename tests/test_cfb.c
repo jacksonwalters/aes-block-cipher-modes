@@ -24,7 +24,7 @@ int main(void) {
     // Expand the key for encryption
     aes_key_expansion(key, round_keys, sbox);
 
-    struct aes_ctx ctx = { .round_keys = round_keys, .sbox = sbox };
+    struct aes_ctx ctx = { .round_keys = round_keys, .sbox = sbox, .key_len = 16};
 
     aes_cfb_encrypt(plaintext, ciphertext, len, iv, &ctx);
     aes_cfb_decrypt(ciphertext, decrypted, len, iv, &ctx);
