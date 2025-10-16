@@ -138,8 +138,17 @@ int main(void) {
             total_vectors++;
 
             if (v.is_fail) {
-                skipped++;
-                total_skipped++;
+                uint8_t decrypted[MAX_BYTES];
+                int res = gcm_decrypt(&ctx, v.ct, v.ct_len, v.aad, v.aad_len, v.tag, v.tag_len, decrypted);
+                if (res != 0) {
+                    // Correct: tag verification failed as expected
+                    passed++;
+                    total_passed++;
+                } else {
+                    // Incorrect: decryption succeeded when it should have failed
+                    printf("FAIL vector unexpectedly passed (Count=%d)\n", vector_count);
+                    // count as failed
+                }
                 continue;
             }
 
