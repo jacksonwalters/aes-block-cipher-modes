@@ -56,7 +56,7 @@ make test
 
 - [x] **SP 800-38C** — CCM (Counter with CBC-MAC)
 
-- [ ] **SP 800-38D** — GCM and GMAC (Galois/Counter Mode)
+- [x] **SP 800-38D** — GCM and GMAC (Galois/Counter Mode)
 
 - [ ] **SP 800-38E** — XTS (XEX-based Tweaked CodeBook mode with CipherText Stealing)
 
