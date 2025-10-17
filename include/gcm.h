@@ -21,6 +21,12 @@ int gcm_init(struct gcm_ctx *ctx,
               const uint8_t *key, size_t key_len,
               const uint8_t *iv, size_t iv_len);
 
+/* GHASH function: output = GHASH(AAD, ciphertext, H) */
+void ghash(uint8_t out[16],
+           const uint8_t *aad, size_t aad_len,
+           const uint8_t *c, size_t c_len,
+           const uint8_t H[16]);
+
 /* Encrypt plaintext and compute tag (tag_len <= 16) */
 void gcm_encrypt(struct gcm_ctx *ctx,
                  const uint8_t *plaintext, size_t len,
