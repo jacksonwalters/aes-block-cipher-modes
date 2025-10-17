@@ -41,7 +41,7 @@ static size_t parse_hex(const char *hex_str, uint8_t *out) {
         if (!isxdigit((unsigned char)hex_str[i])) continue;
         if (i + 1 < len && isxdigit((unsigned char)hex_str[i+1])) {
             out[out_pos++] = hex_to_byte(&hex_str[i]);
-            i++; // skip next digit since we consumed it
+            i++;
         }
     }
     return out_pos;
@@ -56,38 +56,27 @@ static int parse_vector(FILE *f, struct gcm_vector *v) {
 
     while (fgets(line, sizeof(line), f)) {
         strip_trailing(line);
-
-        // Skip empty lines and comments
         if (line[0] == 0 || line[0] == '#') continue;
-        
-        // Check for FAIL marker
+
         if (strncasecmp(line, "FAIL", 4) == 0) {
             v->is_fail = 1;
             continue;
         }
 
-        // Look for key=value pairs
         char *eq = strchr(line, '=');
         if (!eq) continue;
 
-        // Split into name and value
         *eq = 0;
         char *name = line;
         char *value = eq + 1;
-        
-        // Trim whitespace from name
+
         while (*name && isspace((unsigned char)*name)) name++;
         char *name_end = name + strlen(name) - 1;
         while (name_end > name && isspace((unsigned char)*name_end)) *name_end-- = 0;
-        
-        // Trim whitespace from value
         while (*value && isspace((unsigned char)*value)) value++;
 
-        // Parse the field
         if (strcasecmp(name, "Count") == 0) {
-            // If we already have a key, this is the start of next vector
             if (has_key) {
-                // Rewind to start of this line so next call can parse it
                 fseek(f, -(long)(strlen(line) + strlen(value) + 2), SEEK_CUR);
                 return 1;
             }
@@ -107,7 +96,14 @@ static int parse_vector(FILE *f, struct gcm_vector *v) {
         }
     }
 
-    return has_key; // Return 1 if we parsed at least a key
+    return has_key;
+}
+
+/* Write hex data to file with label */
+static void log_hex(FILE *log, const char *label, const uint8_t *data, size_t len) {
+    fprintf(log, "%s = ", label);
+    for (size_t i = 0; i < len; i++) fprintf(log, "%02X", data[i]);
+    fprintf(log, "\n");
 }
 
 int main(void) {
@@ -124,12 +120,12 @@ int main(void) {
     struct gcm_ctx ctx;
     int total_vectors = 0, total_passed = 0, total_skipped = 0;
 
+    FILE *log = fopen("log/failed_vectors.log", "w");
+    if (!log) { perror("log/failed_vectors.log"); return 1; }
+
     for (size_t fidx = 0; fidx < sizeof(files)/sizeof(files[0]); fidx++) {
         FILE *fp = fopen(files[fidx], "r");
-        if (!fp) { 
-            perror(files[fidx]); 
-            continue; 
-        }
+        if (!fp) { perror(files[fidx]); continue; }
 
         int vector_count = 0, passed = 0, skipped = 0;
 
@@ -141,18 +137,12 @@ int main(void) {
                 uint8_t decrypted[MAX_BYTES];
                 int res = gcm_decrypt(&ctx, v.ct, v.ct_len, v.aad, v.aad_len, v.tag, v.tag_len, decrypted);
                 if (res != 0) {
-                    // Correct: tag verification failed as expected
                     passed++;
                     total_passed++;
-                } else {
-                    // Incorrect: decryption succeeded when it should have failed
-                    printf("FAIL vector unexpectedly passed (Count=%d)\n", vector_count);
-                    // count as failed
                 }
                 continue;
             }
 
-            // Check for supported key lengths (16, 24, or 32 bytes)
             if (v.key_len != 16 && v.key_len != 24 && v.key_len != 32) {
                 skipped++;
                 total_skipped++;
@@ -165,23 +155,32 @@ int main(void) {
             gcm_encrypt(&ctx, v.pt, v.pt_len, v.aad, v.aad_len, ciphertext, computed_tag, v.tag_len);
 
             int ok = 1;
-            if (v.ct_len > 0 && memcmp(ciphertext, v.ct, v.ct_len) != 0) {
-                ok = 0;
-            }
-            if (v.tag_len > 0 && memcmp(computed_tag, v.tag, v.tag_len) != 0) {
-                ok = 0;
-            }
+            if (v.ct_len > 0 && memcmp(ciphertext, v.ct, v.ct_len) != 0) ok = 0;
+            if (v.tag_len > 0 && memcmp(computed_tag, v.tag, v.tag_len) != 0) ok = 0;
 
             uint8_t decrypted[MAX_BYTES];
             if (v.ct_len > 0) {
-                if (gcm_decrypt(&ctx, ciphertext, v.ct_len, v.aad, v.aad_len, v.tag, v.tag_len, decrypted) != 0) {
+                if (gcm_decrypt(&ctx, ciphertext, v.ct_len, v.aad, v.aad_len, v.tag, v.tag_len, decrypted) != 0)
                     ok = 0;
-                } else if (memcmp(decrypted, v.pt, v.pt_len) != 0) {
+                else if (memcmp(decrypted, v.pt, v.pt_len) != 0)
                     ok = 0;
-                }
             }
 
-            if (ok) {
+            if (!ok) {
+                // Log the failing vector with expected vs actual
+                fprintf(log, "# Failure (Count=%d) in %s\n", vector_count, files[fidx]);
+                log_hex(log, "Key", v.key, v.key_len);
+                log_hex(log, "IV", v.iv, v.iv_len);
+                if (v.pt_len) log_hex(log, "PT", v.pt, v.pt_len);
+                if (v.ct_len) log_hex(log, "CT", ciphertext, v.ct_len);
+                if (v.tag_len) {
+                    log_hex(log, "Tag_expected", v.tag, v.tag_len);
+                    log_hex(log, "Tag_actual", computed_tag, v.tag_len);
+                }
+                fprintf(log, "Decrypted = ");
+                for (size_t i = 0; i < v.pt_len; i++) fprintf(log, "%02X", decrypted[i]);
+                fprintf(log, "\n\n");
+            } else {
                 passed++;
                 total_passed++;
             }
@@ -193,9 +192,11 @@ int main(void) {
                files[fidx], vector_count, passed, failed, skipped);
     }
 
+    fclose(log);
+
     printf("\n========================================\n");
     printf("Total: %d | Passed: %d | Failed: %d | Skipped: %d\n", 
            total_vectors, total_passed, total_vectors - total_passed - total_skipped, total_skipped);
-    
+
     return (total_vectors == total_passed) ? 0 : 1;
 }

@@ -95,7 +95,7 @@ int gcm_init(struct gcm_ctx *ctx, const uint8_t *key, size_t key_len,
 
     ctx->aes.round_keys = ctx->round_keys;
     ctx->aes.sbox = ctx->sbox;
-    ctx->aes.key_len = key_len;  // Set the key length!
+    ctx->aes.key_len = key_len;
 
     /* H = AES(K,0^128) */
     uint8_t zero[16] = {0};
@@ -104,7 +104,8 @@ int gcm_init(struct gcm_ctx *ctx, const uint8_t *key, size_t key_len,
     /* IV -> J0 */
     if(iv_len == 12){
         memcpy(ctx->J0, iv, 12);
-        ctx->J0[15] = 0x01;
+        memset(ctx->J0 + 12, 0, 4);  // Zero out all 4 bytes
+        ctx->J0[15] = 0x01;           // Then set the last byte to 1
     } else {
         /* GHASH IV */
         ghash(ctx->J0, NULL, 0, iv, iv_len, ctx->H);
@@ -128,7 +129,8 @@ void gcm_encrypt(struct gcm_ctx *ctx, const uint8_t *plaintext, size_t len,
     uint8_t ghash_out[16];
     ghash(ghash_out,aad,aad_len,ciphertext,len,ctx->H);
 
-    uint8_t S[16]; aes_block_wrapper(ctx->J0,S,&ctx->aes);
+    uint8_t S[16]; 
+    aes_block_wrapper(ctx->J0,S,&ctx->aes);
 
     for(size_t i=0;i<tag_len;i++) tag[i]=ghash_out[i]^S[i];
 }
@@ -144,12 +146,16 @@ int gcm_decrypt(struct gcm_ctx *ctx, const uint8_t *ciphertext, size_t len,
     uint8_t ghash_out[16];
     ghash(ghash_out,aad,aad_len,ciphertext,len,ctx->H);
 
-    uint8_t S[16]; aes_block_wrapper(ctx->J0,S,&ctx->aes);
+    uint8_t S[16]; 
+    aes_block_wrapper(ctx->J0,S,&ctx->aes);
 
     uint8_t computed_tag[16];
     for(size_t i=0;i<tag_len;i++) computed_tag[i]=ghash_out[i]^S[i];
 
-    if(memcmp(tag,computed_tag,tag_len)!=0) return -1;
+    if(memcmp(tag,computed_tag,tag_len)!=0) {
+        memset(plaintext, 0, len);
+        return -1;
+    }
 
     uint8_t counter[16]; memcpy(counter,ctx->J0,16);
     ctr_increment(counter);
