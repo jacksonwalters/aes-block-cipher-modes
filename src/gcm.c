@@ -34,7 +34,7 @@ static void ghash_mult(uint8_t out[16], const uint8_t X[16], const uint8_t H[16]
 }
 
 /* GHASH over arbitrary data */
-static void ghash(uint8_t out[16], const uint8_t *aad, size_t aad_len,
+void ghash(uint8_t out[16], const uint8_t *aad, size_t aad_len,
                   const uint8_t *c, size_t c_len, const uint8_t H[16]) {
     uint8_t Y[16] = {0};
     size_t i;
