@@ -84,7 +84,7 @@ int gcm_init(struct gcm_ctx *ctx, const uint8_t *key, size_t key_len,
     initialize_aes_sbox(ctx->sbox);
 
     if(key_len == 16) {
-        aes_key_expansion(key, ctx->round_keys, ctx->sbox);
+        aes_key_expansion_128(key, ctx->round_keys, ctx->sbox);
     } else if(key_len == 24) {
         aes_key_expansion_192(key, ctx->round_keys, ctx->sbox);
     } else if(key_len == 32) {

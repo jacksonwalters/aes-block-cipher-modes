@@ -60,7 +60,7 @@ int main(void)
     uint8_t round_keys[176];
     uint8_t sbox[256];
     initialize_aes_sbox(sbox);
-    aes_key_expansion(CCM_KEY, round_keys, sbox);
+    aes_key_expansion_128(CCM_KEY, round_keys, sbox);
 
     struct aes_ctx ctx = { .round_keys = round_keys, .sbox = sbox, .key_len = 16};
 

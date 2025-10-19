@@ -7,7 +7,7 @@ static uint8_t rcon[11] = {
     0x1B, 0x36
 };
 
-void aes_key_expansion(const uint8_t key[16], uint8_t round_keys[176], const uint8_t sbox[256]) {
+void aes_key_expansion_128(const uint8_t key[16], uint8_t round_keys[176], const uint8_t sbox[256]) {
     // First 16 bytes are the original key
     for (int i = 0; i < 16; i++) {
         round_keys[i] = key[i];

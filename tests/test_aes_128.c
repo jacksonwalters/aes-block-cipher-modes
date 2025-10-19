@@ -13,7 +13,7 @@ int main(void) {
     uint8_t enc[16], dec[16];
 
     initialize_aes_sbox(sbox);
-    aes_key_expansion(key, round_keys, sbox);
+    aes_key_expansion_128(key, round_keys, sbox);
 
     aes128_encrypt_block(block, enc, round_keys, sbox);
     aes128_decrypt_block(enc, dec, round_keys, sbox);
