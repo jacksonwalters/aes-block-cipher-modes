@@ -94,8 +94,8 @@ clean_coverage:
 	rm -rf coverage-report
 
 # Optional: quick badge
-badge:
-	@coverage=$(shell lcov --summary coverage.info 2>/dev/null | awk '/lines/ {val=$$3; gsub("%","",val); print int(val)}'); \
+badge: coverage.info
+	@coverage=$$(lcov --summary coverage.info 2>&1 | awk '/lines/ {gsub(/[^0-9.]/,"",$$2); print $$2}'); \
 	if [ -z "$$coverage" ]; then coverage=0; fi; \
 	echo "![Coverage](https://img.shields.io/badge/coverage-$$coverage%25-brightgreen)"
 

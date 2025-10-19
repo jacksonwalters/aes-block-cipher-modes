@@ -45,7 +45,7 @@
 # Kernel Module Compile Results
 *.mod*
 *.cmd
-.tmp_versions/
+*.tmp_versions/
 modules.order
 Module.symvers
 Mkfile.old
@@ -53,3 +53,19 @@ dkms.conf
 
 # debug information files
 *.dwo
+
+# Coverage and build artifacts
+/obj/
+/bin/
+/coverage-report/
+/coverage.info
+*.gcda
+*.gcno
+*.gcov
+
+# macOS system files
+.DS_Store
+
+# Editor backups
+*~
+*.swp
