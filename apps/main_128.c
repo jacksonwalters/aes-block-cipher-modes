@@ -65,7 +65,7 @@ int main(void) {
 
     // Initialize S-box and expand keys
     initialize_aes_sbox(sbox);
-    aes_key_expansion(key, round_keys, sbox);
+    aes_key_expansion_128(key, round_keys, sbox);
 
     // Encrypt block by block
     for (size_t i = 0; i < padded_len; i += BLOCK_SIZE) {
