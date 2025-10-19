@@ -58,7 +58,7 @@ make test
 
 - [x] **SP 800-38D** — GCM and GMAC (Galois/Counter Mode)
 
-- [ ] **SP 800-38E** — XTS (XEX-based Tweaked CodeBook mode with CipherText Stealing)
+- [x] **SP 800-38E** — XTS (XEX-based Tweaked CodeBook mode with CipherText Stealing)
 
 - [ ] **SP 800-38F** — Modes for Key Wrapping
 
