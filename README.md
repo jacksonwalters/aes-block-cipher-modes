@@ -2,6 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
 ![basic tests](https://github.com/jacksonwalters/aes-block-cipher-standards/actions/workflows/build.yml/badge.svg)
+![Coverage](https://img.shields.io/badge/coverage-0%25-brightgreen)
 
 This repository implements several cryptographic standards in C. 
 
