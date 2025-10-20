@@ -44,7 +44,7 @@ make test
 
 - [x] [FIPS 197 (2001), i.e. AES](#aes)
 
-## 🧱 NIST Block Cipher Modes (SP 800-38x Series)
+## NIST Block Cipher Modes (SP 800-38x Series)
 
 - [x] **SP 800-38A** — Block Cipher Modes of Operation  
   - ECB (Electronic Codebook)  
@@ -65,14 +65,14 @@ make test
 
 ---
 
-## 🧮 NIST Algorithm Validation & Reference Docs
+## NIST Algorithm Validation & Reference Docs
 
 - [ ] **CAVP Test Vectors** — Implement test harness to verify correctness  
 - [ ] **CMVP** — (Optional) Integrate self-tests / validation reporting
 
 ---
 
-## 🌐 Protocol and Standards Integration
+## Protocol and Standards Integration
 
 - [ ] **RFC 5116** — AEAD (Authenticated Encryption with Associated Data) interface  
 - [ ] **RFC 5288** — AES-GCM Cipher Suites for TLS
@@ -85,7 +85,7 @@ make test
 
 ---
 
-## 🧪 Additional Tools & Techniques (Implementation Side)
+## Additional Tools & Techniques (Implementation Side)
 
 - [ ] Implement padding (PKCS#7) and ciphertext stealing (CTS)  
 - [ ] Write reusable AES primitive to support all modes  
