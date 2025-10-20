@@ -61,7 +61,7 @@ make test
 
 - [x] **SP 800-38E** — XTS (XEX-based Tweaked CodeBook mode with CipherText Stealing)
 
-- [ ] **SP 800-38F** — Modes for Key Wrapping
+- [x] **SP 800-38F** — Modes for Key Wrapping
 
 ---
 
