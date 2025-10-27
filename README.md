@@ -87,7 +87,7 @@ make test
 
 ## Additional Tools & Techniques (Implementation Side)
 
-- [ ] Implement padding (PKCS#7) and ciphertext stealing (CTS)  
+- [x] Implement padding (PKCS#7) and ciphertext stealing (CTS)  
 - [ ] Write reusable AES primitive to support all modes  
 - [ ] Add unit tests for each mode (including edge cases)  
 - [ ] Integrate CAVP test vectors for validation  
