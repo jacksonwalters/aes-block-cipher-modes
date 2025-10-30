@@ -108,12 +108,12 @@ static void log_hex(FILE *log, const char *label, const uint8_t *data, size_t le
 
 int main(void) {
     const char *files[] = {
-        "gcmtestvectors/gcmDecrypt128.rsp",
-        "gcmtestvectors/gcmDecrypt192.rsp",
-        "gcmtestvectors/gcmDecrypt256.rsp",
-        "gcmtestvectors/gcmEncryptExtIV128.rsp",
-        "gcmtestvectors/gcmEncryptExtIV192.rsp",
-        "gcmtestvectors/gcmEncryptExtIV256.rsp"
+        "test_vectors/gcmtestvectors/gcmDecrypt128.rsp",
+        "test_vectors/gcmtestvectors/gcmDecrypt192.rsp",
+        "test_vectors/gcmtestvectors/gcmDecrypt256.rsp",
+        "test_vectors/gcmtestvectors/gcmEncryptExtIV128.rsp",
+        "test_vectors/gcmtestvectors/gcmEncryptExtIV192.rsp",
+        "test_vectors/gcmtestvectors/gcmEncryptExtIV256.rsp"
     };
 
     struct gmac_vector v;
